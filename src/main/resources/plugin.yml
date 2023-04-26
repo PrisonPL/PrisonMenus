@@ -1,0 +1,13 @@
+name: PrisonMenus
+version: '${project.version}'
+main: com.collidacube.prison.prisonmenus.PrisonMenus
+api-version: 1.19
+softdepend: [ PlaceholderAPI ]
+
+commands:
+  openmenu:
+    usage: /openmenu <menuId>
+  reloadmenus:
+    permission: prisonmenus.reload
+    permission-message: "§cLacking the permission: prisonmenus.reload"
+    usage: /reloadmenus

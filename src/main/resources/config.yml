@@ -1,0 +1,35 @@
+global-menu:
+  mode: global
+  label: "&7Now How About That"
+  rows: 4
+  slot_0:
+    item: stone
+    displayName: "Nothin Much"
+player-menu:
+  mode: player
+  type: dropper
+  label: "Your ID"
+  slot_4:
+    item: paper
+    displayName: "&7Username: &f%player_name%"
+    lore:
+      - "&7Displayname: &f%player_displayname%"
+      - "&7UUID: &f%player_uuid%"
+    commands:
+      - "say hi"
+admin:
+  mode: liveUpdate
+  rows: 1
+  slot_0:
+    item: green_concrete
+    displayName: "&a+$2"
+    commands:
+      - "eco %player_name% cash add 2"
+  slot_4:
+    item: paper
+    displayName: "%prisoncore_eco_cash%"
+  slot_8:
+    item: red_concrete
+    displayName: "&c-$2"
+    commands:
+      - "eco %player_name% cash remove 2"
