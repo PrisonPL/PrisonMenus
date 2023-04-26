@@ -1,6 +1,9 @@
 # [PrisonMenus](https://github.com/PrisonPL)
 This API allows you to create custom menus through configuration or another plugin!
 
+Since this module acts as an API, it does not require PrisonCore.
+This plugin supports [PlaceholderAPI](https://github.com/PlaceholderAPI/PlaceholderAPI).
+
 To make your own submodules, you can add it as a dependency with Maven or Gradle.
 **Maven**
 ```xml
