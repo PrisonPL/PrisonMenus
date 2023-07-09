@@ -4,6 +4,7 @@ import com.collidacube.prison.prisonmenus.api.items.IClickableItem;
 import com.collidacube.prison.prisonmenus.api.menus.AutoUpdateMenu;
 import com.collidacube.prison.prisonmenus.api.menus.BasicMenu;
 import com.collidacube.prison.prisonmenus.api.menus.Menu;
+import com.collidacube.prison.prisonmenus.commands.CloseMenuCommand;
 import com.collidacube.prison.prisonmenus.commands.OpenMenuCommand;
 import com.collidacube.prison.prisonmenus.commands.ReloadMenusCommand;
 import org.bukkit.Bukkit;
@@ -29,16 +30,16 @@ public final class PrisonMenus extends JavaPlugin implements Listener {
         ConfigLoader.registerMenuBuilder("basic", menuData -> {
             IClickableItem[] contents = menuData.contents.subList(0, menuData.calcSize()).toArray(new IClickableItem[0]);
             if (menuData.type == InventoryType.CHEST)
-                return new BasicMenu(menuData.title, menuData.rows, contents);
-            else return new BasicMenu(menuData.title, menuData.type, contents);
+                return new BasicMenu(menuData.title, menuData.rows, menuData.defaultItem, contents);
+            else return new BasicMenu(menuData.title, menuData.type, menuData.defaultItem, contents);
         });
 
         ConfigLoader.registerMenuBuilder("autoUpdate", menuData -> {
             IClickableItem[] contents = menuData.contents.subList(0, menuData.calcSize()).toArray(new IClickableItem[0]);
             int updateDelay = menuData.config.getInt("updateDelay");
             if (menuData.type == InventoryType.CHEST)
-                return new AutoUpdateMenu(menuData.title, updateDelay, menuData.rows, contents);
-            else return new AutoUpdateMenu(menuData.title, updateDelay, menuData.type, contents);
+                return new AutoUpdateMenu(menuData.title, updateDelay, menuData.rows, menuData.defaultItem, contents);
+            else return new AutoUpdateMenu(menuData.title, updateDelay, menuData.type, menuData.defaultItem, contents);
         });
     }
 
@@ -53,6 +54,9 @@ public final class PrisonMenus extends JavaPlugin implements Listener {
 
         PluginCommand cmd = getCommand("openmenu");
         if (cmd != null) new OpenMenuCommand(cmd);
+
+        cmd = getCommand("closemenu");
+        if (cmd != null) new CloseMenuCommand(cmd);
 
         cmd = getCommand("reloadmenus");
         if (cmd != null) new ReloadMenusCommand(cmd);

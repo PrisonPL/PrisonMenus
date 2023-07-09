@@ -46,6 +46,10 @@ public class ConfigLoader {
         menuData.mode = config.getString("mode", "basic");
         menuData.title = ChatColor.translateAlternateColorCodes('&', config.getString("title", ""));
 
+        ConfigurationSection defaultItemConfig = config.getConfigurationSection("defaultItem");
+        if (defaultItemConfig != null)
+            menuData.defaultItem = buildClickableItem(defaultItemConfig);
+
         String type = config.getString("type", "chest");
         try {
             menuData.type = InventoryType.valueOf(type.toUpperCase());
@@ -86,9 +90,11 @@ public class ConfigLoader {
     }
 
     public static CommandItem.CommandData parseCommand(String command) {
-        boolean consoleCommand = command.startsWith("@");
-        String commandString = consoleCommand ? command.substring(1) : command;
-        return new CommandItem.CommandData(consoleCommand, commandString);
+        char prefix = command.charAt(0);
+        String commandString = command;
+        if (prefix == '\\' || prefix == CommandItem.CommandData.CONSOLE_COMMAND || prefix == CommandItem.CommandData.PLAYER_OP_COMMAND)
+            commandString = command.substring(1);
+        return new CommandItem.CommandData(prefix, commandString);
     }
 
     public static IClickableItem buildClickableItem(ConfigurationSection config) {

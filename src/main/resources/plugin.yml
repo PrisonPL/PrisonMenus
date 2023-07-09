@@ -7,6 +7,8 @@ softdepend: [ PlaceholderAPI ]
 commands:
   openmenu:
     usage: /openmenu <menuId>
+  closemenu:
+    usage: /closemenu [player]
   reloadmenus:
     permission: prisonmenus.reload
     permission-message: "§cLacking the permission: prisonmenus.reload"

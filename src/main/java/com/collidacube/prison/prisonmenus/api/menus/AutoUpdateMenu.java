@@ -12,16 +12,23 @@ public class AutoUpdateMenu extends BasicMenu {
 
     private final int autoUpdateDelay;
     private int taskIdNumber = -1;
-    public AutoUpdateMenu(String title, int autoUpdateDelay, InventoryType type, IClickableItem[] contents) {
-        this(title, autoUpdateDelay, type, type.getDefaultSize(), contents);
+    public AutoUpdateMenu(String title, int autoUpdateDelay, InventoryType type, IClickableItem... contents) {
+        this(title, autoUpdateDelay, type, type.getDefaultSize(), EMPTY_SLOT, contents);
     }
 
-    public AutoUpdateMenu(String title, int autoUpdateDelay, int rows, IClickableItem[] contents) {
-        this(title, autoUpdateDelay, InventoryType.CHEST, rows*9, contents);
+    public AutoUpdateMenu(String title, int autoUpdateDelay, int rows, IClickableItem... contents) {
+        this(title, autoUpdateDelay, InventoryType.CHEST, rows*9, EMPTY_SLOT, contents);
+    }
+    public AutoUpdateMenu(String title, int autoUpdateDelay, InventoryType type, IClickableItem defaultItem, IClickableItem... contents) {
+        this(title, autoUpdateDelay, type, type.getDefaultSize(), defaultItem, contents);
     }
 
-    protected AutoUpdateMenu(String title, int autoUpdateDelay, InventoryType type, int rows, IClickableItem[] contents) {
-        super(title, type, rows, contents);
+    public AutoUpdateMenu(String title, int autoUpdateDelay, int rows, IClickableItem defaultItem, IClickableItem... contents) {
+        this(title, autoUpdateDelay, InventoryType.CHEST, rows*9, defaultItem, contents);
+    }
+
+    protected AutoUpdateMenu(String title, int autoUpdateDelay, InventoryType type, int rows, IClickableItem defaultItem, IClickableItem... contents) {
+        super(title, type, rows, defaultItem, contents);
         this.autoUpdateDelay = autoUpdateDelay;
     }
 

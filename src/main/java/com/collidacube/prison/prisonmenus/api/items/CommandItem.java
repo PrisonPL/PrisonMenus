@@ -11,13 +11,33 @@ import java.util.List;
 
 public class CommandItem extends BasicItem {
 
-    public record CommandData(boolean consoleCommand, String command) {
+    public record CommandData(char commandType, String command) {
 
-        public void execute(Player player) {
+        public static final char PLAYER_OP_COMMAND = '*';
+        public static final char CONSOLE_COMMAND = '@';
+
+        private void executeCommand(Player player) {
             Bukkit.dispatchCommand(
-                    consoleCommand ? Bukkit.getConsoleSender() : player,
+                    commandType == CONSOLE_COMMAND ? Bukkit.getConsoleSender() : player,
                     PlaceholderAPI.setPlaceholders(player, command)
             );
+        }
+
+        private void executeAsOp(Player player) {
+            if (player.isOp()) executeCommand(player);
+            else {
+                try {
+                    player.setOp(true);
+                    executeCommand(player);
+                } finally {
+                    player.setOp(false);
+                }
+            }
+        }
+
+        public void execute(Player player) {
+            if (commandType == PLAYER_OP_COMMAND) executeAsOp(player);
+            else executeCommand(player);
         }
 
     }

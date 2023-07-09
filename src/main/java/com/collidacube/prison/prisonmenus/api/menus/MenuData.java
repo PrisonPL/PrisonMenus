@@ -13,6 +13,7 @@ public class MenuData {
     public int rows = -1;
     public String title = null;
     public List<IClickableItem> contents = null;
+    public IClickableItem defaultItem = null;
 
     public int calcSize() {
         if (type == null) return 0;

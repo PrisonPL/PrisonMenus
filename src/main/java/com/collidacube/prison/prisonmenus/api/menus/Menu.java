@@ -49,13 +49,13 @@ public abstract class Menu implements IMenu {
         String title = getInventoryTitle(player);
 
         Inventory inventory = type == InventoryType.CHEST
-                                      ? Bukkit.createInventory(null, size, title)
-                                      : Bukkit.createInventory(null, type, title);
+                ? Bukkit.createInventory(null, size, title)
+                : Bukkit.createInventory(null, type, title);
         player.openInventory(inventory);
         return inventory;
     }
 
-    public void render(Player player) {
+    public void render(Player player, String... args) {
         Inventory inventory = inventories.computeIfAbsent(player, this::initInventory);
         inventory.setContents(getItems(player));
 
