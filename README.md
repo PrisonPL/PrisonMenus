@@ -14,11 +14,13 @@ To make your own submodules, you can add it as a dependency with Maven or Gradle
   </repository>
 </repositories>
 
-<dependency>
-  <groupId>com.collidacube.prison</groupId>
-  <artifactId>PrisonMenus</artifactId>
-  <version>1.0</version>
-</dependency>
+<dependencies>
+    <dependency>
+      <groupId>com.collidacube.prison</groupId>
+      <artifactId>PrisonMenus</artifactId>
+      <version>1.1</version>
+    </dependency>
+</dependencies>
 ```
 
 **Gradle**
@@ -29,5 +31,5 @@ repositories {
     }
 }
 
-compile 'com.collidacube.prison:PrisonMenus:1.0'
+compile 'com.collidacube.prison:PrisonMenus:1.1'
 ```
