@@ -1,118 +1,108 @@
 package com.collidacube.prison.prisonmenus;
 
-import com.collidacube.prison.prisonmenus.api.items.ClickableItem;
-import com.collidacube.prison.prisonmenus.api.items.ClickableItemImpl;
+import com.collidacube.prison.prisonmenus.api.items.BasicItem;
 import com.collidacube.prison.prisonmenus.api.items.CommandItem;
-import com.collidacube.prison.prisonmenus.api.items.RedirectItem;
-import com.collidacube.prison.prisonmenus.api.menus.GlobalMenu;
-import com.collidacube.prison.prisonmenus.api.menus.LiveUpdateMenu;
+import com.collidacube.prison.prisonmenus.api.items.IClickableItem;
 import com.collidacube.prison.prisonmenus.api.menus.Menu;
-import com.collidacube.prison.prisonmenus.api.menus.PlayerMenu;
-import org.bukkit.Bukkit;
+import com.collidacube.prison.prisonmenus.api.menus.MenuData;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.event.inventory.InventoryType;
-import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.function.Function;
 
 public class ConfigLoader {
 
-    private static final HashMap<String, Menu> menus = new HashMap<>();
-    private static Set<String> configMenus = new HashSet<>();
-    public static Menu getMenu(String menuId) {
-        return menus.get(menuId);
-    }
-
-    public static boolean registerMenu(String menuId, Menu menu) {
-        return menus.putIfAbsent(menuId, menu) == null;
-    }
-    public static Set<String> getRegisteredMenus() {
-        return menus.keySet();
+    private static final HashMap<String, Function<MenuData, Menu>> menuBuilders = new HashMap<>();
+    public static boolean registerMenuBuilder(String menuMode, Function<MenuData, Menu> builder) {
+        return menuBuilders.putIfAbsent(menuMode, builder) == null;
     }
 
     public static void load(FileConfiguration config) {
-        for (String configMenu : configMenus)
-            menus.remove(configMenu);
-        configMenus.clear();
+        Menu.clearAllRegisteredMenus();
 
-        configMenus = config.getKeys(false);
-        for (String key : configMenus) {
+        for (String key : config.getKeys(false)) {
             ConfigurationSection menuConfig = config.getConfigurationSection(key);
-            @SuppressWarnings("DataFlowIssue")
-            Menu menu = buildMenu(menuConfig);
-            registerMenu(key, menu);
-            configMenus.add(key);
+            MenuData menuData = buildMenuData(key, menuConfig);
+            if (menuData == null) continue;
+
+            Function<MenuData, Menu> builder = menuBuilders.get(menuData.mode);
+            if (builder == null) continue;
+
+            Menu.registerMenu(key, builder.apply(menuData));
         }
     }
 
-    public static Menu buildMenu(ConfigurationSection config) {
-        String mode = config.getString("mode", "global");
-        String label = ChatColor.translateAlternateColorCodes('&', config.getString("label", ""));
+    public static MenuData buildMenuData(String menuId, ConfigurationSection config) {
+        MenuData menuData = new MenuData(config);
+        menuData.menuId = menuId;
+        menuData.mode = config.getString("mode", "basic");
+        menuData.title = ChatColor.translateAlternateColorCodes('&', config.getString("title", ""));
+
         String type = config.getString("type", "chest");
-        int rows = config.getInt("rows", 3);
-        int updateDelay = config.getInt("updateDelay", 20);
-        boolean otherwiseInteractive = config.getBoolean("otherwiseInteractive", true);
-
-        InventoryType invType;
-        try { invType = InventoryType.valueOf(type.toUpperCase()); }
-        catch (IllegalArgumentException e) { PrisonMenus.getInstance().getLogger().info("There is no inventory type called " + type); return null; }
-        Inventory inv = invType == InventoryType.CHEST ?
-                Bukkit.createInventory(null, rows*9, label) :
-                Bukkit.createInventory(null, invType, label);
-
-        List<ClickableItem> items = new ArrayList<>();
-        for (int i = 0; i < inv.getSize(); i++) {
-            ConfigurationSection configItem = config.getConfigurationSection("slot_"+i);
-            if (configItem == null) continue;
-
-            ClickableItem item = buildClickableItem(i, configItem);
-            if (item != null)
-                items.add(item);
+        try {
+            menuData.type = InventoryType.valueOf(type.toUpperCase());
+        }
+        catch (IllegalArgumentException e) {
+            PrisonMenus.getInstance().getLogger().severe("There is no inventory type called " + type);
+            return null;
         }
 
-        if (mode.equalsIgnoreCase("global"))
-            return new GlobalMenu(inv, items, otherwiseInteractive);
+        menuData.rows = config.getInt("rows", 3);
 
-        if (mode.equalsIgnoreCase("player"))
-            return new PlayerMenu(label, inv, items, otherwiseInteractive);
+        List<IClickableItem> items = new ArrayList<>();
+        int minSize = menuData.calcSize();
+        while (minSize >= items.size()) items.add(null);
+        for (String key : config.getKeys(false)) {
+            if (!key.startsWith("slot_")) continue;
 
-        if (mode.equalsIgnoreCase("liveUpdate")) {
-            if (updateDelay < 1)
-                PrisonMenus.getInstance().getLogger().severe("Update delay cannot be less that one!");
-            else {
-                if (updateDelay < 5)
-                    PrisonMenus.getInstance().getLogger().warning("Update delay is recommended to be at least 5.");
-                return new LiveUpdateMenu(label, inv, items, updateDelay, otherwiseInteractive);
+            String slotString = key.substring("slot_".length());
+            int slot;
+            try {
+                slot = Integer.parseInt(slotString);
+            } catch (NumberFormatException ignored) {
+                PrisonMenus.getInstance().getLogger().severe("Invalid slot index: " + slotString + " [" + menuId + "]");
+                continue;
             }
-        }
 
-        return null;
+            @SuppressWarnings("DataFlowIssue")
+            IClickableItem item = buildClickableItem(config.getConfigurationSection(key));
+
+            if (item == null) continue;
+
+            while (slot >= items.size()) items.add(null);
+            items.set(slot, item);
+        }
+        menuData.contents = items;
+
+        return menuData;
     }
 
-    public static ClickableItem buildClickableItem(int slot, ConfigurationSection config) {
-        List<String> commands = config.getStringList("commands");
-        String menuId = config.getString("redirectTo");
-        boolean stealable = config.getBoolean("stealable", false);
+    public static CommandItem.CommandData parseCommand(String command) {
+        boolean consoleCommand = command.startsWith("@");
+        String commandString = consoleCommand ? command.substring(1) : command;
+        return new CommandItem.CommandData(consoleCommand, commandString);
+    }
+
+    public static IClickableItem buildClickableItem(ConfigurationSection config) {
+        boolean stealable = config.getBoolean("stealable");
         ItemStack item = buildItem(config);
+        List<CommandItem.CommandData> commands = config.getStringList("commands")
+                .stream()
+                .map(ConfigLoader::parseCommand)
+                .toList();
         if (item == null) return null;
 
-        if (menuId != null) {
-            if (stealable)
-                PrisonMenus.getInstance().getLogger().warning("Stealable redirect items aren't supported!");
-
-            if (!configMenus.contains(menuId) && !menus.containsKey(menuId))
-                PrisonMenus.getInstance().getLogger().warning("There is no menu with the id '" + menuId + "'");
-            if (commands.size() > 0) commands.add("prisonmenus:openmenu " + menuId);
-            else return new RedirectItem(slot, item, menuId);
-        }
         if (commands.size() > 0)
-            return new CommandItem(slot, item, stealable, commands);
-        return new ClickableItemImpl(slot, item, stealable);
+            return new CommandItem(item, stealable, commands);
+        return new BasicItem(item, stealable);
     }
 
     public static ItemStack buildItem(ConfigurationSection config) {

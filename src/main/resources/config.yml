@@ -1,14 +1,14 @@
 global-menu:
-  mode: global
-  label: "&7Now How About That"
+  mode: basic
+  title: "&7Now How About That"
   rows: 4
   slot_0:
     item: stone
     displayName: "Nothin Much"
 player-menu:
-  mode: player
+  mode: basic
   type: dropper
-  label: "Your ID"
+  title: "Your ID"
   slot_4:
     item: paper
     displayName: "&7Username: &f%player_name%"
@@ -16,10 +16,12 @@ player-menu:
       - "&7Displayname: &f%player_displayname%"
       - "&7UUID: &f%player_uuid%"
     commands:
-      - "say hi"
+      - "say test3"
+      - "openmenu global-menu"
 admin:
-  mode: liveUpdate
+  mode: autoUpdate
   rows: 1
+  updateDelay: 5
   slot_0:
     item: green_concrete
     displayName: "&a+$2"

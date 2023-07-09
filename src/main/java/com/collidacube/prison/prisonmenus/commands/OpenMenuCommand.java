@@ -1,6 +1,6 @@
 package com.collidacube.prison.prisonmenus.commands;
 
-import com.collidacube.prison.prisonmenus.ConfigLoader;
+import com.collidacube.prison.prisonmenus.api.menus.Menu;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.PluginCommand;
@@ -22,8 +22,8 @@ public class OpenMenuCommand implements TabExecutor {
     public boolean onCommand(@NotNull CommandSender sender, @NotNull Command cmd, @NotNull String label, @NotNull String[] args) {
         if (args.length == 0) sender.sendMessage("§cPlease provide a valid menu id!");
         else if (!sender.hasPermission("prisonmenus." + args[0])) sender.sendMessage("§cLacking the permission: prisonmenus." + args[0]);
-        else if (ConfigLoader.getMenu(args[0]) == null) sender.sendMessage("§cThat menu doesn't exist!");
-        else if (sender instanceof Player player) ConfigLoader.getMenu(args[0]).openTo(player);
+        else if (Menu.getMenu(args[0]) == null) sender.sendMessage("§cThat menu doesn't exist!");
+        else if (sender instanceof Player player) Menu.getMenu(args[0]).render(player);
         else sender.sendMessage("§cYou aren't a player!");
         return true;
     }
@@ -31,7 +31,7 @@ public class OpenMenuCommand implements TabExecutor {
     @Nullable
     @Override
     public List<String> onTabComplete(@NotNull CommandSender sender, @NotNull Command cmd, @NotNull String label, @NotNull String[] args) {
-        return args.length == 1 ? ConfigLoader.getRegisteredMenus().stream().filter(id -> id.startsWith(args[0])).toList() : null;
+        return args.length == 1 ? Menu.getRegisteredMenus().stream().filter(id -> id.startsWith(args[0])).toList() : null;
     }
 
 }
